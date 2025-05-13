@@ -1,40 +1,43 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: .NET CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ main, master ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  build-and-publish:
+    runs-on: ubuntu-latest # You can also use windows-latest or macos-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: |
+          6.0.x # Specify the .NET SDK version(s) you need
+          7.0.x
+          8.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal # --no-build assumes the build step already ran
+
     - name: Publish (create build output)
-      run: dotnet publish --configuration Release --no-restore --output ./publish 
+      run: dotnet publish --configuration Release --no-restore --output ./publish
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-app
         path: ./publish
         # You can add a retention-days option here, e.g.,
-        # retention-days: 5  
-  
-            
-      
+        # retention-days: 5
